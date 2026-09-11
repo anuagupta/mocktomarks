@@ -1,4 +1,12 @@
 <title>Mock-to-Marks — ProDJEE</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#05060a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mock-to-Marks">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -246,6 +254,19 @@ tr:last-child td{border-bottom:none;}
 .helper{font-size:12.5px;color:var(--ink-faint);margin-top:20px;}
 .divider{height:1px;background:var(--border-soft);margin:26px 0;}
 .empty{text-align:center;padding:60px 20px;color:var(--ink-soft);}
+.pwa-install-btn{
+  position:fixed;right:18px;bottom:18px;z-index:60;
+  display:inline-flex;align-items:center;gap:8px;
+  padding:11px 18px;border-radius:99px;border:none;
+  background:var(--primary);color:var(--on-primary);
+  font-family:var(--sans);font-weight:700;font-size:13.5px;
+  box-shadow:0 8px 24px hsl(var(--shadow-color) / .4);
+  cursor:pointer;
+}
+.pwa-install-btn:hover{background:var(--primary-strong);}
+@media (max-width:640px){
+  .pwa-install-btn{right:14px;bottom:14px;padding:10px 16px;font-size:13px;}
+}
 @media (max-width:640px){
   .catrow{flex-direction:column;gap:8px;}
   .catrank{width:auto;}
@@ -254,6 +275,7 @@ tr:last-child td{border-bottom:none;}
 </style>
 
 <div id="app"></div>
+<button id="pwaInstallBtn" class="pwa-install-btn" hidden>⬇ Install app</button>
 
 <script>
 (function(){
@@ -1243,6 +1265,35 @@ document.getElementById('app').addEventListener('input', function(e){
   var t = e.target.closest('[data-field]');
   if(t && (t.tagName==='INPUT' && (t.type==='text'||t.type==='number')) ) App.fieldChange(t);
 });
+
+/* ---------------- PWA install + offline support ---------------- */
+var deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', function(e){
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  var btn = document.getElementById('pwaInstallBtn');
+  if(btn) btn.hidden = false;
+});
+var pwaBtn = document.getElementById('pwaInstallBtn');
+if(pwaBtn){
+  pwaBtn.addEventListener('click', function(){
+    if(!deferredInstallPrompt) return;
+    deferredInstallPrompt.prompt();
+    deferredInstallPrompt.userChoice.finally(function(){
+      deferredInstallPrompt = null;
+      pwaBtn.hidden = true;
+    });
+  });
+}
+window.addEventListener('appinstalled', function(){
+  var btn = document.getElementById('pwaInstallBtn');
+  if(btn) btn.hidden = true;
+});
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(){ /* offline caching unavailable - app still works online */ });
+  });
+}
 
 /* hot-reload friendliness for republishes */
 function boot(){ render(); }
