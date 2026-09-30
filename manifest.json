@@ -1,6 +1,6 @@
 {
-  "name": "Mock-to-Marks — ProDJEE",
-  "short_name": "Mock-to-Marks",
+  "name": "ProDJEE",
+  "short_name": "ProDJEE",
   "description": "JEE mock-test diagnosis and 14-day recovery planner.",
   "start_url": "./index.html",
   "scope": "./",
